@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -10,6 +10,7 @@ services:
     volumes:
       - ./public:/var/www/html
       - ./app:/var/www/app
+      - ./.env:/var/www/.env
     depends_on:
       - db
 

@@ -10,6 +10,7 @@ RUN docker-php-ext-install pdo pdo_mysql
 # Copiar los archivos del proyecto al contenedor
 COPY ./public /var/www/html
 COPY ./app /var/www/app
+COPY .env /var/www/.env
 
 # Establecer permisos (opcional, pero recomendado)
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
