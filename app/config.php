@@ -1,8 +1,10 @@
 <?php
+$dotenv = parse_ini_file(__DIR__ . '/../.env');
+
 return [
-    'host' => 'db',
-    'db' => 'login_app',
-    'user' => 'root',
-    'pass' => 'root',
-    'charset' => 'utf8mb4'
+    'host'    => $dotenv['DB_HOST'],
+    'db'      => $dotenv['DB_NAME'],
+    'user'    => $dotenv['DB_USER'],
+    'pass'    => $dotenv['DB_PASS'],
+    'charset' => $dotenv['DB_CHARSET'],
 ];
