@@ -10,16 +10,23 @@ services:
     volumes:
       - ./public:/var/www/html
       - ./app:/var/www/app
+      - ./views:/var/www/views
+      - ./routes:/var/www/routes
       - ./.env:/var/www/.env
     depends_on:
       - db
+    environment:
+      DB_HOST: db
+      MYSQL_DATABASE: login_app
+      MYSQL_PASSWORD: root
+      DB_CHARSET: utf8mb4
 
   db:
     image: mysql:8.0
-    container_name: mysql-login
+    container_name: mysql-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: login_app
     ports:
       - "3306:3306"

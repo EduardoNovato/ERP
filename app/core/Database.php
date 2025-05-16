@@ -5,7 +5,7 @@ class Database
 
     public function __construct()
 {
-    $config = require __DIR__ . '/config.php';
+    $config = require __DIR__ . '/../config.php'; 
     $dsn = "mysql:host={$config['host']};dbname={$config['db']};charset={$config['charset']}";
 
     $maxAttempts = 10;
