@@ -1,4 +1,6 @@
-
+<?php
+$error = $error ?? '';
+?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -7,6 +9,9 @@
     <meta charset="UTF-8">
     <title>Registrarse</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             background: #f0f2f5;
             font-family: 'Segoe UI', sans-serif;
@@ -14,6 +19,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            padding: 0;
+            margin: 0;
         }
 
         .container {
@@ -21,7 +28,7 @@
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-            width: 300px;
+            width: 25%;
         }
 
         h2 {
@@ -79,10 +86,12 @@
 <body>
     <div class="container">
         <h2>Registrarse</h2>
-
-    
-
-        <form method="POST">
+        <?php if ($error): ?>
+            <div class="message">
+                <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+        <form method="POST" acction="/register">
             <input type="text" name="username" placeholder="Usuario" required>
             <input type="password" name="password" placeholder="Contraseña" required>
             <input type="text" name="email" placeholder="Correo electrónico" required>
@@ -90,7 +99,7 @@
         </form>
 
         <div class="link">
-            ¿Ya tienes cuenta? <a href="index.php">Inicia sesión</a>
+            ¿Ya tienes cuenta? <a href="/">Inicia sesión</a>
         </div>
     </div>
 </body>

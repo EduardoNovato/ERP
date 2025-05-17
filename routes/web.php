@@ -27,4 +27,4 @@ $router->post('/register', [AuthController::class, 'register']);
 $router->get('/logout', [AuthController::class, 'logout']);
 
 // Panel principal (restringido)
-$router->get('/dashboard', [UserStatsController::class, 'index']);
+$router->get('/dashboard', [UserStatsController::class, 'dashboard']);

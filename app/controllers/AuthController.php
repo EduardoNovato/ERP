@@ -30,7 +30,7 @@ class AuthController
                 if ($user && password_verify($password, $user['password'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
-                    $_SESSION['login_success'] = "Bienvenido, {$user['name']}";
+                    $_SESSION['login_success'] = "Bienvenido, {$user['username']}";
                     header('Location: /dashboard');
                     exit;
                 } else {
@@ -50,15 +50,15 @@ class AuthController
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = trim($_POST['name'] ?? '');
+            $username = trim($_POST['username'] ?? '');
             $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
 
-            if (empty($name) || empty($email) || empty($password)) {
+            if (empty($username) || empty($email) || empty($password)) {
                 $error = "⚠️ Todos los campos son obligatorios.";
             } else {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $result = User::create($name, $email, $hashedPassword);
+                $result = User::create($username, $email, $hashedPassword);
 
                 if ($result) {
                     $_SESSION['login_success'] = "Cuenta creada con éxito.";

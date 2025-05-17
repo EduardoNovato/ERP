@@ -108,7 +108,7 @@ $error = $error ?? '';
         </form>
 
         <div class="link">
-            ¿No tienes cuenta? <a href="auth/register.php">Regístrate</a>
+            ¿No tienes cuenta? <a href="/register">Regístrate</a>
         </div>
     </div>
 </body>

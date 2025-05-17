@@ -1,16 +1,3 @@
-<?php
-session_start();
-require_once __DIR__ . '/../app/Database.php';
-require_once __DIR__ . '/../app/Auth.php';
-
-$db = new Database();
-$auth = new Auth($db->getConnection());
-
-if (!$auth->isLoggedIn()) {
-    header("Location: index.php");
-    exit;
-}
-?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -18,23 +5,14 @@ if (!$auth->isLoggedIn()) {
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
-    <?php if (isset($_SESSION['login_success'])): ?>
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Inicio de sesión exitoso',
-                text: <?= json_encode($_SESSION['login_success']) ?>,
-                confirmButtonColor: '#28a745'
-            });
-        </script>
-        <?php unset($_SESSION['login_success']); ?>
-    <?php endif; ?>
+
 
     <div class="sidebar">
         <h2>📊 Mi Panel</h2>
@@ -57,78 +35,66 @@ if (!$auth->isLoggedIn()) {
         </div>
     </div>
     <script>
-        // Gráfica de usuarios por mes
-        fetch('api/user-stats.php')
-            .then(res => res.json())
-            .then(data => {
-                const labels = Object.keys(data);
-                const counts = Object.values(data);
+    // Gráfica de usuarios por mes
+    const usersByMonth = <?= json_encode($usersByMonth) ?>;
+    const userLabels = Object.keys(usersByMonth);
+    const userCounts = Object.values(usersByMonth);
 
-                const ctx = document.getElementById('userChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Usuarios registrados',
-                            data: counts,
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                            fill: true,
-                            tension: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                display: true
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
-                });
-            });
-    </script>
+    const ctx1 = document.getElementById('userChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: userLabels,
+            datasets: [{
+                label: 'Usuarios registrados',
+                data: userCounts,
+                borderColor: 'rgba(52, 152, 219, 1)',
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                fill: true,
+                tension: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
 
-    <script>
-        // Gráfica de inicios de sesión recientes
-        fetch('api/logins_data.php')
-            .then(response => response.json())
-            .then(data => {
-                const labels = data.map(item => item.date).reverse();
-                const counts = data.map(item => item.count).reverse();
+    // Gráfica de inicios de sesión
+    const loginsData = <?= json_encode($loginsData) ?>.reverse();
+    const loginLabels = loginsData.map(item => item.date);
+    const loginCounts = loginsData.map(item => item.count);
 
-                const ctx = document.getElementById('loginsChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Inicios de sesión',
-                            data: counts,
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            fill: true,
-                            tension: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                precision: 0
-                            }
-                        }
-                    }
-                });
-            });
-    </script>
+    const ctx2 = document.getElementById('loginsChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: loginLabels,
+            datasets: [{
+                label: 'Inicios de sesión',
+                data: loginCounts,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    precision: 0
+                }
+            }
+        }
+    });
+</script>
 
 
 </body>
