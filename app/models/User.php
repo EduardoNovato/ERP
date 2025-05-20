@@ -52,4 +52,40 @@ class User
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public static function recordFailedLogin(string $username)
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET failed_attempts = failed_attempts + 1, last_failed_login = NOW() WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        
+        // Verificar si se debe bloquear
+        $stmt = $pdo->prepare("SELECT failed_attempts FROM users WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        $user = $stmt->fetch();
+
+        if ($user && $user['failed_attempts'] >= 5) {
+            $lockTime = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+            $stmt = $pdo->prepare("UPDATE users SET account_locked_until = :lockTime WHERE username = :username");
+            $stmt->execute(['lockTime' => $lockTime, 'username' => $username]);
+        }
+    }
+
+    public static function resetLoginAttempts(int $userId): void {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET failed_attempts = 0, account_locked_until = NULL WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
+    }
+
+    public static function isAccountLocked(string $username): ?string {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT account_locked_until FROM users WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        $result = $stmt->fetch();
+
+        if ($result && $result['account_locked_until'] && strtotime($result['account_locked_until']) > time()) {
+            return $result['account_locked_until']; // Fecha y hora hasta la cual está bloqueada
+        }
+        return null;
+    }
 }

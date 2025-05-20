@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../models/LoginHistory.php';
 
 class AuthController
 {
@@ -19,22 +20,31 @@ class AuthController
         $error = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = trim($_POST['username'] ?? '');
+            $username = trim($_POST['username'] ?? '');
             $password = $_POST['password'] ?? '';
 
-            if (empty($email) || empty($password)) {
+            if (empty($username) || empty($password)) {
                 $error = "⚠️ Todos los campos son obligatorios.";
             } else {
-                $user = User::findByEmail($email);
+                $lockedUntil = User::isAccountLocked($username);
+                if ($lockedUntil) {
+                    $error = "❌ Cuenta bloqueada. Intenta de nuevo después de: " . date('H:i:s', strtotime($lockedUntil));
+                }
+                else{
+                    $user = User::findByEmail($username);
+                    if ($user && password_verify($password, $user['password'])) {
+                        User::resetLoginAttempts($user['id']);
+                        LoginHistory::log($user['id'], $_SERVER['REMOTE_ADDR']);
 
-                if ($user && password_verify($password, $user['password'])) {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['login_success'] = "Bienvenido, {$user['username']}";
-                    header('Location: /dashboard');
-                    exit;
-                } else {
-                    $error = "❌ Credenciales incorrectas.";
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['login_success'] = "Bienvenido, {$user['username']}";
+                        header('Location: /dashboard');
+                        exit;
+                    } else {
+                        User::recordFailedLogin($username);
+                        $error = "❌ Credenciales incorrectas.";
+                    }
                 }
             }
         }
