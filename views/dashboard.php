@@ -1,17 +1,14 @@
 <?php
-require_once __DIR__ . '/../helpers/timeRelative.php';
-require_once __DIR__ . '/../app/core/Database.php';
-require_once __DIR__ . '/../app/controllers/UserStatsController.php';
-
+// Verificar si el archivo timeRelative.php existe antes de incluirlo
+if (file_exists(__DIR__ . '/../helpers/timeRelative.php')) {
+    require_once __DIR__ . '/../helpers/timeRelative.php';
+}
 
 // Evita acceso no autorizado
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: /');
     exit;
 }
-
-$recentEvents = UserStatsController::getRecentEvents($db);
-echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
 ?>
 
 <!DOCTYPE html>
@@ -110,8 +107,9 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                 <div class="stat-content">
                     <h3>Usuarios Totales</h3>
                     <p class="stat-value"><?= $totalUsers ?? 0 ?></p>
-                    <p class="stat-change <?= ($userGrowthPercentage >= 0) ? 'positive' : 'negative' ?>">
-                        <?= ($userGrowthPercentage >= 0) ? '+' : '' ?><?= $userGrowthPercentage ?>% este mes
+                    <p
+                        class="stat-change <?= isset($userGrowthPercentage) && $userGrowthPercentage >= 0 ? 'positive' : 'negative' ?>">
+                        <?= isset($userGrowthPercentage) ? (($userGrowthPercentage >= 0 ? '+' : '') . $userGrowthPercentage . '% este mes') : '0% este mes' ?>
                     </p>
                 </div>
             </div>
@@ -126,11 +124,16 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                 <div class="stat-content">
                     <h3>Actividad Diaria</h3>
                     <p class="stat-value"><?= $todayLogins ?? 0 ?> sesiones</p>
-                    <p class="stat-change <?= ($todayLogins >= $yesterdayLogins) ? 'positive' : 'negative' ?>">
-                        <?php if ($todayLogins > $yesterdayLogins): ?>
-                            +<?= $todayLogins - $yesterdayLogins ?> vs. ayer
-                        <?php elseif ($todayLogins < $yesterdayLogins): ?>
-                            -<?= $yesterdayLogins - $todayLogins ?> vs. ayer
+                    <p
+                        class="stat-change <?= isset($todayLogins, $yesterdayLogins) && $todayLogins >= $yesterdayLogins ? 'positive' : 'negative' ?>">
+                        <?php if (isset($todayLogins, $yesterdayLogins)): ?>
+                            <?php if ($todayLogins > $yesterdayLogins): ?>
+                                +<?= $todayLogins - $yesterdayLogins ?> vs. ayer
+                            <?php elseif ($todayLogins < $yesterdayLogins): ?>
+                                -<?= $yesterdayLogins - $todayLogins ?> vs. ayer
+                            <?php else: ?>
+                                Similar al promedio
+                            <?php endif; ?>
                         <?php else: ?>
                             Similar al promedio
                         <?php endif; ?>
@@ -151,11 +154,16 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                 <div class="stat-content">
                     <h3>Nuevos Hoy</h3>
                     <p class="stat-value"><?= $newUsersToday ?? 0 ?> usuarios</p>
-                    <p class="stat-change <?= ($newUsersToday >= $newUsersYesterday) ? 'positive' : 'negative' ?>">
-                        <?php if ($newUsersToday > $newUsersYesterday): ?>
-                            +<?= $newUsersToday - $newUsersYesterday ?> vs. ayer
-                        <?php elseif ($newUsersToday < $newUsersYesterday): ?>
-                            -<?= $newUsersYesterday - $newUsersToday ?> vs. ayer
+                    <p
+                        class="stat-change <?= isset($newUsersToday, $newUsersYesterday) && $newUsersToday >= $newUsersYesterday ? 'positive' : 'negative' ?>">
+                        <?php if (isset($newUsersToday, $newUsersYesterday)): ?>
+                            <?php if ($newUsersToday > $newUsersYesterday): ?>
+                                +<?= $newUsersToday - $newUsersYesterday ?> vs. ayer
+                            <?php elseif ($newUsersToday < $newUsersYesterday): ?>
+                                -<?= $newUsersYesterday - $newUsersToday ?> vs. ayer
+                            <?php else: ?>
+                                Igual que ayer
+                            <?php endif; ?>
                         <?php else: ?>
                             Igual que ayer
                         <?php endif; ?>
@@ -185,7 +193,7 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                 <h2>Acciones Rápidas</h2>
             </div>
             <div class="quick-actions">
-                <button class="action-button">
+                <button class="action-button" data-action="add-user">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -193,9 +201,9 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                         <line x1="20" y1="8" x2="20" y2="14"></line>
                         <line x1="23" y1="11" x2="17" y2="11"></line>
                     </svg>
-                    Añadir Usuario
+                    <span class="action-text">Añadir Usuario</span>
                 </button>
-                <button class="action-button">
+                <button class="action-button" data-action="new-report">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -203,23 +211,24 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                         <line x1="12" y1="18" x2="12" y2="12"></line>
                         <line x1="9" y1="15" x2="15" y2="15"></line>
                     </svg>
-                    Nuevo Reporte
+                    <span class="action-text">Nuevo Reporte</span>
                 </button>
-                <button class="action-button">
+                <button class="action-button" data-action="send-message">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    Enviar Mensaje
+                    <span class="action-text">Enviar Mensaje</span>
+                    <span class="action-badge">3</span>
                 </button>
-                <button class="action-button">
+                <button class="action-button" data-action="more-actions">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-                    Más Acciones
+                    <span class="action-text">Más Acciones</span>
                 </button>
             </div>
         </div>
@@ -276,13 +285,14 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                                         default => 'realizó una acción',
                                     } ?>
                                 </p>
-                                <span class="activity-time"><?= timeRelative($event['login_time']) ?></span>
+                                <span class="activity-time">
+                                    <?= function_exists('timeRelative') ? timeRelative($event['login_time']) : date('d/m/Y H:i', strtotime($event['login_time'])) ?>
+                                </span>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
-
         </div>
 
         <!-- Charts Row -->
@@ -305,7 +315,7 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
 
     <script>
         // Gráfica de usuarios por mes
-        const usersByMonth = <?= json_encode($usersByMonth) ?>;
+        const usersByMonth = <?= json_encode($usersByMonth ?? []) ?>;
         const userLabels = Object.keys(usersByMonth);
         const userCounts = Object.values(usersByMonth);
 
@@ -335,23 +345,40 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
         });
 
         // Gráfica de inicios de sesión
-        const loginsData = <?= json_encode($loginsData) ?>.reverse();
-        const loginLabels = loginsData.map(item => item.date);
-        const loginCounts = loginsData.map(item => item.count);
+        const loginsData = <?= json_encode($loginsData ?? []) ?>;
+
+        const allDates = [...new Set(loginsData.map(item => item.date))].reverse();
+
+        const types = ['login', 'logout', 'register'];
+        const datasets = types.map(type => {
+            const data = allDates.map(date => {
+                const found = loginsData.find(item => item.date === date && item.event_type === type);
+                return found ? parseInt(found.count) : 0;
+            });
+            return {
+                label: type.charAt(0).toUpperCase() + type.slice(1),
+                data: data,
+                borderColor: {
+                    login: 'rgb(75, 192, 192)',
+                    logout: 'rgb(255, 99, 132)',
+                    register: 'rgb(255, 206, 86)'
+                }[type],
+                backgroundColor: {
+                    login: 'rgba(75, 192, 192, 0.2)',
+                    logout: 'rgba(255, 99, 132, 0.2)',
+                    register: 'rgba(255, 206, 86, 0.2)'
+                }[type],
+                fill: true,
+                tension: 0.3
+            };
+        });
 
         const ctx2 = document.getElementById('loginsChart').getContext('2d');
         new Chart(ctx2, {
             type: 'line',
             data: {
-                labels: loginLabels,
-                datasets: [{
-                    label: 'Inicios de sesión',
-                    data: loginCounts,
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true,
-                    tension: 0
-                }]
+                labels: allDates,
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -363,9 +390,12 @@ echo "<script>console.log(" . json_encode($recentEvents) . ");</script>";
                 }
             }
         });
+
+
     </script>
 
     <script src="/assets/js/sidebar.js"></script>
+    <script src="/assets/js/quick-actions.js"></script>
 
 </body>
 

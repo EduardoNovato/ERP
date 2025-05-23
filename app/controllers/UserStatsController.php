@@ -54,8 +54,15 @@ class UserStatsController
         $usersByMonth = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
         // Inicios de sesión por día (últimos 7 días, para gráficas)
-        $stmt = $db->query("SELECT DATE(login_time) as date, COUNT(*) as count FROM auth_log GROUP BY DATE(login_time) ORDER BY DATE(login_time) DESC LIMIT 7");
+        $stmt = $db->query("
+            SELECT DATE(login_time) as date, event_type, COUNT(*) as count
+            FROM auth_log
+            GROUP BY DATE(login_time), event_type
+            ORDER BY DATE(login_time) DESC
+            LIMIT 21
+        ");
         $loginsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
         // Total usuarios
         $stmt = $db->query("SELECT COUNT(*) FROM users");

@@ -106,17 +106,6 @@ body {
   z-index: 101;
   background-color: transparent; /* Remove background */
 }
-/* 
-#sidebar-toggle::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background-color: #ffffff; /* Same as sidebar background 
-  border-radius: 50%;
-  z-index: -1;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-} */
 
 #sidebar-toggle svg {
   width: 14px;
@@ -257,26 +246,61 @@ body {
 .action-button {
   background-color: #f8f9fa;
   border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .action-button:hover {
   background-color: #f1f8ff;
   border-color: #007bff;
   color: #007bff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.1);
+}
+
+.action-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 123, 255, 0.1);
 }
 
 .action-button svg {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 0.5rem;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.action-button:hover svg {
+  transform: scale(1.1);
+  color: #007bff;
+}
+
+.action-button .action-text {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.action-button .action-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
 /* Activity List */
@@ -304,6 +328,7 @@ body {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
+  flex-shrink: 0;
 }
 
 .activity-icon svg {
@@ -340,6 +365,14 @@ body {
 .activity-time {
   font-size: 0.8rem;
   color: #6c757d;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.activity-empty {
+  padding: 1rem 0;
+  text-align: center;
+  color: #6c757d;
 }
 
 .view-all {
@@ -363,6 +396,126 @@ body {
   min-height: 350px;
 }
 
+/* Estilos para el modal de acciones rápidas */
+.quick-action-modal {
+  background-color: white;
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.quick-action-modal .modal-header {
+  background-color: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.quick-action-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.quick-action-modal .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Estilos para el menú desplegable de reportes */
+.report-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 220px;
+  z-index: 100;
+  overflow: hidden;
+  display: none;
+}
+
+.report-item {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.report-item:hover {
+  background-color: #f1f8ff;
+}
+
+.report-item svg {
+  width: 18px;
+  height: 18px;
+  margin-right: 0.75rem;
+}
+
+/* Estilos para el formulario en modales */
+.quick-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.quick-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.quick-form .swal2-input,
+.quick-form .swal2-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.quick-form .swal2-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Estilos para el grid de más acciones */
+.more-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.more-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.more-action-item:hover {
+  background-color: #f1f8ff;
+  color: #007bff;
+}
+
+.more-action-item svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.5rem;
+}
+
+.more-action-item span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .charts-row {
     grid-template-columns: 1fr;
@@ -370,5 +523,9 @@ body {
 
   .stats-container {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .more-actions-grid {
+    grid-template-columns: 1fr;
   }
 }
