@@ -21,7 +21,6 @@ class Database
                     break;
                 } catch (PDOException $e) {
                     $attempt++;
-                    echo "Intentando conectar a la base de datos... intento $attempt\n";
                     sleep(2);
                 }
             }

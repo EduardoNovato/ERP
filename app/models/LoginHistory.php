@@ -4,13 +4,14 @@ require_once __DIR__ . '/../core/Database.php';
 
 class LoginHistory
 {
-    public static function log($userId, $ipAddress)
+    public static function log($userId, $ipAddress, $eventType = 'login')
     {
         $db = Database::getConnection();
-        $stmt = $db->prepare("INSERT INTO auth_log (user_id, ip_address, login_time) VALUES (:user_id, :ip_address, NOW())");
+        $stmt = $db->prepare("INSERT INTO auth_log (user_id, ip_address, event_type, login_time) VALUES (:user_id, :ip_address, :event_type, NOW())");
         return $stmt->execute([
             'user_id' => $userId,
-            'ip_address' => $ipAddress
+            'ip_address' => $ipAddress,
+            'event_type' => $eventType
         ]);
     }
 

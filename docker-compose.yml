@@ -13,6 +13,7 @@ services:
       - ./views:/var/www/views
       - ./routes:/var/www/routes
       - ./.env:/var/www/.env
+      - ./helpers:/var/www/helpers
     depends_on:
       - db
     environment:
@@ -30,3 +31,9 @@ services:
       MYSQL_DATABASE: login_app
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:

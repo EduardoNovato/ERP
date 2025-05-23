@@ -4,11 +4,11 @@ require_once __DIR__ . '/../core/Database.php';
 
 class User
 {
-    public static function findByEmail($email)
+    public static function findByEmail($username)
     {
         $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
+        $stmt = $db->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
+        $stmt->execute(['username' => $username]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
