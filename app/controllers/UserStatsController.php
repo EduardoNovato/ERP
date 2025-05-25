@@ -21,18 +21,21 @@ class UserStatsController
         return User::findById($userId);
     }
 
-    public static function getRecentEvents(PDO $db)
+    // Método para obtener eventos recientes
+    public static function getRecentEvents()
     {
+        $db = Database::getConnection();
         $stmt = $db->query("
-            SELECT u.username, u.email, l.event_type, l.login_time 
-            FROM auth_log l
-            JOIN users u ON u.id = l.user_id
-            ORDER BY l.login_time DESC
+            SELECT a.*, u.username 
+            FROM auth_log a 
+            JOIN users u ON a.user_id = u.id 
+            ORDER BY a.login_time DESC 
             LIMIT 5
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Método para la ruta /dashboard sin parámetros
     public static function dashboard()
     {
         session_start();
@@ -42,16 +45,16 @@ class UserStatsController
         }
 
         $userId = $_SESSION['user_id'];
-        $db = Database::getConnection();
 
-        // Estadísticas básicas
+        // Obtener estadísticas
         $loginCount = self::getLoginStats($userId);
         $lastLogin = self::getLastLoginDate($userId);
         $userInfo = self::getUserInfo($userId);
 
-        // Usuarios por mes (para gráficas)
+        // Obtener usuarios registrados por mes
+        $db = Database::getConnection();
         $stmt = $db->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count FROM users GROUP BY month ORDER BY month ASC");
-        $usersByMonth = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        $usersByMonth = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['2025-04' => 3, '2025-05' => 1, etc.]
 
         // Inicios de sesión por día (últimos 7 días, para gráficas)
         $stmt = $db->query("
@@ -63,37 +66,63 @@ class UserStatsController
         ");
         $loginsData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Calcular estadísticas adicionales
+        $totalUsers = array_sum($usersByMonth);
 
-        // Total usuarios
-        $stmt = $db->query("SELECT COUNT(*) FROM users");
-        $totalUsers = $stmt->fetchColumn();
+        // Calcular crecimiento de usuarios
+        $currentMonth = date('Y-m');
+        $lastMonth = date('Y-m', strtotime('-1 month'));
 
-        // Nuevos usuarios hoy y ayer
-        $stmt = $db->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()");
-        $newUsersToday = $stmt->fetchColumn();
+        $currentMonthUsers = $usersByMonth[$currentMonth] ?? 0;
+        $lastMonthUsers = $usersByMonth[$lastMonth] ?? 0;
 
-        $stmt = $db->query("SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE() - INTERVAL 1 DAY");
-        $newUsersYesterday = $stmt->fetchColumn();
+        $userGrowthPercentage = $lastMonthUsers > 0
+            ? round(($currentMonthUsers - $lastMonthUsers) / $lastMonthUsers * 100)
+            : 0;
 
-        // Cálculo de crecimiento
-        $userGrowthPercentage = 0;
-        if ($newUsersYesterday > 0) {
-            $userGrowthPercentage = round((($newUsersToday - $newUsersYesterday) / $newUsersYesterday) * 100, 2);
-        } elseif ($newUsersToday > 0) {
-            $userGrowthPercentage = 100;
-        }
+        // Obtener inicios de sesión de hoy y ayer
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
 
-        // Inicios de sesión hoy y ayer
-        $stmt = $db->query("SELECT COUNT(*) FROM auth_log WHERE DATE(login_time) = CURDATE()");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM auth_log WHERE DATE(login_time) = ?");
+        $stmt->execute([$today]);
         $todayLogins = $stmt->fetchColumn();
 
-        $stmt = $db->query("SELECT COUNT(*) FROM auth_log WHERE DATE(login_time) = CURDATE() - INTERVAL 1 DAY");
+        $stmt->execute([$yesterday]);
         $yesterdayLogins = $stmt->fetchColumn();
 
-        // Eventos recientes
-        $recentEvents = self::getRecentEvents($db);
+        // Obtener nuevos usuarios de hoy y ayer
+        $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE DATE(created_at) = ?");
+        $stmt->execute([$today]);
+        $newUsersToday = $stmt->fetchColumn();
 
-        // Renderizar vista
-        require __DIR__ . '/../../views/dashboard.php';
+        $stmt->execute([$yesterday]);
+        $newUsersYesterday = $stmt->fetchColumn();
+
+        // Obtener eventos recientes para la sección de actividad
+        $recentEvents = self::getRecentEvents();
+
+        // Incluir helper de tiempo relativo
+        if (file_exists(__DIR__ . '/../../helpers/timeRelative.php')) {
+            require_once __DIR__ . '/../../helpers/timeRelative.php';
+        }
+
+        // Usar el nuevo sistema de layout
+        View::renderWithLayout('dashboard-content', [
+            'totalUsers' => $totalUsers,
+            'userGrowthPercentage' => $userGrowthPercentage,
+            'todayLogins' => $todayLogins,
+            'yesterdayLogins' => $yesterdayLogins,
+            'newUsersToday' => $newUsersToday,
+            'newUsersYesterday' => $newUsersYesterday,
+            'recentEvents' => $recentEvents,
+            'usersByMonth' => $usersByMonth,
+            'loginsData' => $loginsData
+        ], [
+            'pageTitle' => 'Dashboard',
+            'currentPage' => 'dashboard',
+            'includeChartJS' => true,
+            'additionalJS' => ['/assets/js/quick-actions.js']
+        ]);
     }
 }
