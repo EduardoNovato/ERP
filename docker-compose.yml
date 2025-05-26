@@ -1,39 +1,44 @@
-version: "3.8"
-
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.php
+    volumes:
+      - ./public:/var/www/html/public
+      - ./app:/var/www/html/app
+      - ./views:/var/www/html/views
+      - ./routes:/var/www/html/routes
+      - ./.env:/var/www/html/.env
+      - ./helpers:/var/www/html/helpers
+    expose:
+      - "9000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     ports:
       - "8000:80"
     volumes:
-      - ./public:/var/www/html
-      - ./app:/var/www/app
-      - ./views:/var/www/views
-      - ./routes:/var/www/routes
-      - ./.env:/var/www/.env
-      - ./helpers:/var/www/helpers
+      - .:/var/www/html
     depends_on:
-      - db
-    environment:
-      DB_HOST: db
-      MYSQL_DATABASE: login_app
-      MYSQL_PASSWORD: root
-      DB_CHARSET: utf8mb4
+      - app
 
   db:
-    image: mysql:8.0
-    container_name: mysql-db
+    image: postgres:17.5-alpine3.21
+    container_name: postgres-db
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: login_app
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
 
 volumes:
   db_data:

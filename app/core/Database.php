@@ -6,8 +6,9 @@ class Database
     public static function getConnection(): PDO
     {
         if (!self::$pdo) {
-            $config = require __DIR__ . '/../config.php'; 
-            $dsn = "mysql:host={$config['host']};dbname={$config['db']};charset={$config['charset']}";
+            $config = require __DIR__ . '/../config.php';
+
+            $dsn = "pgsql:host={$config['host']};port={$config['port']};dbname={$config['db']}";
 
             $maxAttempts = 10;
             $attempt = 0;
