@@ -53,7 +53,7 @@ class UserStatsController
 
         // Obtener usuarios registrados por mes
         $db = Database::getConnection();
-        $stmt = $db->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count FROM users GROUP BY month ORDER BY month ASC");
+        $stmt = $db->query("SELECT TO_CHAR(created_at, 'YYYY-MM') as month, COUNT(*) as count FROM users GROUP BY month ORDER BY month ASC");
         $usersByMonth = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); // ['2025-04' => 3, '2025-05' => 1, etc.]
 
         // Inicios de sesión por día (últimos 7 días, para gráficas)

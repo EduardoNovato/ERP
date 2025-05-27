@@ -88,23 +88,23 @@ class UsersController
         $activeUsers = $db->query("
             SELECT COUNT(DISTINCT user_id) 
             FROM auth_log 
-            WHERE login_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE login_time >= NOW() - INTERVAL '30 days'
         ")->fetchColumn();
 
         // Nuevos usuarios este mes
         $newThisMonth = $db->query("
             SELECT COUNT(*) 
             FROM users 
-            WHERE MONTH(created_at) = MONTH(NOW()) 
-            AND YEAR(created_at) = YEAR(NOW())
+            WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
         ")->fetchColumn();
 
         // Usuarios registrados hoy
         $newToday = $db->query("
             SELECT COUNT(*) 
             FROM users 
-            WHERE DATE(created_at) = CURDATE()
+            WHERE created_at::date = CURRENT_DATE
         ")->fetchColumn();
+
 
         return [
             'total' => $totalUsers,
