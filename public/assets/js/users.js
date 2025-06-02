@@ -44,12 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
           }
 
-          // Aquí iría la lógica para crear el usuario mediante AJAX
           return {username, email, password};
         },
       }).then((result) => {
         if (result.isConfirmed) {
-          // Simulación de éxito
           Swal.fire({
             icon: "success",
             title: "Usuario creado",
@@ -57,7 +55,6 @@ document.addEventListener("DOMContentLoaded", () => {
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-            // Recargar la página para mostrar el nuevo usuario
             window.location.reload();
           });
         }
