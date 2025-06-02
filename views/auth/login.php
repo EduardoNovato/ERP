@@ -1,35 +1,5 @@
 <?php
-require_once __DIR__ . '/../app/Database.php';
-require_once __DIR__ . '/../app/Auth.php';
-
-$db = new Database();
-$auth = new Auth($db->getConnection());
-
-$message = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $email = trim($_POST['email']);
-
-    if ($auth->register($username, $password, $email)) {
-        // swewtalert
-        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>";
-        echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Registro exitoso',
-                text: 'Usuario registrado correctamente.',
-                confirmButtonColor: '#28a745'
-            }).then(() => {
-                window.location.href = 'index.php';
-            });
-        </script>";
-        exit;
-    } else {
-        $message = "❌ Error al registrar. El usuario puede que ya exista.";
-    }
-}
+$error = $error ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -37,8 +7,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <head>
     <meta charset="UTF-8">
-    <title>Registrarse</title>
+    <title>Iniciar sesión</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             background: #f0f2f5;
             font-family: 'Segoe UI', sans-serif;
@@ -46,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
 
         .container {
@@ -71,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         button {
             width: 100%;
-            background: #28a745;
+            background: #007BFF;
             color: white;
             border: none;
             padding: 0.7rem;
@@ -81,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         button:hover {
-            background: #218838;
+            background: #0056b3;
         }
 
-        .message {
+        .error {
             color: red;
             text-align: center;
             margin-bottom: 1rem;
@@ -105,33 +81,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
+    <?php if (isset($_SESSION['login_success'])): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: <?= json_encode($_SESSION['login_success']) ?>,
+                confirmButtonColor: '#28a745'
+            });
+        </script>
+    <?php unset($_SESSION['login_success']); ?>
+<?php endif; ?>
+
     <div class="container">
-        <h2>Registrarse</h2>
-
-        <?php if ($message): ?>
-            <script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Registro fallido',
-                    text: '<?= $message ?>',
-                    confirmButtonColor: '#28a745'
-                });
-            </script>
+        <h2>Iniciar Sesión</h2>
+        <?php if ($error): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
-
-        <form method="POST">
+        <form method="POST" action="/login">
             <input type="text" name="username" placeholder="Usuario" required>
             <input type="password" name="password" placeholder="Contraseña" required>
-            <input type="text" name="email" placeholder="Correo electrónico" required>
-            <button type="submit">Crear cuenta</button>
+            <button type="submit">Entrar</button>
         </form>
 
         <div class="link">
-            ¿Ya tienes cuenta? <a href="index.php">Inicia sesión</a>
+            ¿No tienes cuenta? <a href="/register">Regístrate</a>
         </div>
     </div>
 </body>
